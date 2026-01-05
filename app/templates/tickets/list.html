@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Chamados{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h2>Chamados</h2>
+  <a class="btn btn-success" href="{{ url_for('tickets.create_ticket') }}">Novo</a>
+ </div>
+
+{% if current_user.role in ['tech','supervisor','admin'] %}
+
+  <div class="mt-4">
+    <h4 class="mb-3">Sem atendimento</h4>
+    {% if unassigned_by_company %}
+      {% for company, items in unassigned_by_company.items() %}
+        <h6 class="mt-3"><span class="badge text-bg-light border"><i class="bi bi-building me-1"></i>{{ company }}</span></h6>
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Título</th>
+              <th>Prioridade</th>
+              <th>Criado em</th>
+              <th>Técnico</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in items %}
+            <tr>
+              <td>{{ t.number }}</td>
+              <td>{{ t.title }}</td>
+              <td>{{ t.priority }}</td>
+              <td>{{ t.created_at|localtime }}</td>
+              <td>—</td>
+              <td><a class="btn btn-sm btn-primary" href="{{ url_for('tickets.detail', ticket_id=t.id) }}">Abrir</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+    {% else %}
+      <div class="text-muted">Nenhum chamado pendente de atendimento.</div>
+    {% endif %}
+  </div>
+
+  <div class="mt-4">
+    <h4 class="mb-3">Em atendimento</h4>
+    {% if in_progress_by_company %}
+      {% for company, items in in_progress_by_company.items() %}
+        <h6 class="mt-3"><span class="badge text-bg-light border"><i class="bi bi-building me-1"></i>{{ company }}</span></h6>
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Título</th>
+              <th>Prioridade</th>
+              <th>Criado em</th>
+              <th>Técnico</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in items %}
+            <tr>
+              <td>{{ t.number }}</td>
+              <td>{{ t.title }}</td>
+              <td>{{ t.priority }}</td>
+              <td>{{ t.created_at|localtime }}</td>
+              <td>{% if t.assignee %}{{ t.assignee.name }}{% else %}—{% endif %}</td>
+              <td><a class="btn btn-sm btn-primary" href="{{ url_for('tickets.detail', ticket_id=t.id) }}">Abrir</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+    {% else %}
+      <div class="text-muted">Nenhum chamado em atendimento.</div>
+    {% endif %}
+  </div>
+
+  <div class="mt-4">
+    <h4 class="mb-3">Encerrados / Resolvidos</h4>
+    {% if closed_by_company %}
+      {% for company, items in closed_by_company.items() %}
+        <h6 class="mt-3"><span class="badge text-bg-light border"><i class="bi bi-building me-1"></i>{{ company }}</span></h6>
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Título</th>
+              <th>Status</th>
+              <th>Prioridade</th>
+              <th>Criado em</th>
+              <th>Técnico</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in items %}
+            <tr>
+              <td>{{ t.number }}</td>
+              <td>{{ t.title }}</td>
+              <td>{{ t.status }}</td>
+              <td>{{ t.priority }}</td>
+              <td>{{ t.created_at|localtime }}</td>
+              <td>{% if t.assignee %}{{ t.assignee.name }}{% else %}—{% endif %}</td>
+              <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('tickets.detail', ticket_id=t.id) }}">Abrir</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+    {% else %}
+      <div class="text-muted">Nenhum chamado encerrado ou resolvido.</div>
+    {% endif %}
+  </div>
+
+{% else %}
+  <table class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Título</th>
+        <th>Status</th>
+        <th>Prioridade</th>
+        <th>Criado em</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tickets %}
+      <tr>
+        <td>{{ t.number }}</td>
+        <td>{{ t.title }}</td>
+        <td>{{ t.status }}</td>
+        <td>{{ t.priority }}</td>
+        <td>{{ t.created_at|localtime }}</td>
+        <td><a class="btn btn-sm btn-primary" href="{{ url_for('tickets.detail', ticket_id=t.id) }}">Abrir</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center">Nenhum chamado encontrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% endblock %}

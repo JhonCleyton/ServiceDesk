@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<h2>Admin</h2>
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Empresas</div><div class="display-6">{{ stats.companies }}</div><a href="{{ url_for('admin.companies') }}" class="stretched-link"></a></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Usuários</div><div class="display-6">{{ stats.users }}</div><a href="{{ url_for('admin.users') }}" class="stretched-link"></a></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Contratos</div><div class="display-6">{{ stats.contracts }}</div><a href="{{ url_for('admin.contracts') }}" class="stretched-link"></a></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Planos SLA</div><div class="display-6">{{ stats.slaplans }}</div><a href="{{ url_for('admin.slaplans') }}" class="stretched-link"></a></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Filas/Equipes</div><div class="display-6">&nbsp;</div><a href="{{ url_for('admin.queues') }}" class="stretched-link"></a></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Ativos</div><div class="display-6">&nbsp;</div><a href="{{ url_for('admin.assets') }}" class="stretched-link"></a></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Modelos de E-mail</div><div class="display-6">&nbsp;</div><a href="{{ url_for('admin.email_templates') }}" class="stretched-link"></a></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Ferramentas</div><div class="display-6">&nbsp;</div><a href="{{ url_for('admin.tools') }}" class="stretched-link"></a></div></div>
+  </div>
+</div>
+{% endblock %}

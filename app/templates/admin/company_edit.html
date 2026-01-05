@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Editar Empresa - Admin{% endblock %}
+{% block content %}
+<h2>Editar Empresa</h2>
+<form method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div class="row">
+    <div class="col-md-6 mb-3">{{ form.name.label(class_='form-label') }}{{ form.name(class_='form-control') }}</div>
+    <div class="col-md-6 mb-3">{{ form.domain.label(class_='form-label') }}{{ form.domain(class_='form-control') }}</div>
+  </div>
+  <div class="mb-3">{{ form.terms_url.label(class_='form-label') }}{{ form.terms_url(class_='form-control') }}</div>
+  <div class="row">
+    <div class="col-md-6 mb-3">{{ form.consent_required(class_='form-check-input', id='consent') }}<label class="form-check-label ms-2" for="consent">{{ form.consent_required.label.text }}</label></div>
+    <div class="col-md-6 mb-3">{{ form.retention_days.label(class_='form-label') }}{{ form.retention_days(class_='form-control') }}</div>
+  </div>
+  <div class="mb-3">{{ form.accept_any_domain(class_='form-check-input', id='anydom') }}<label class="form-check-label ms-2" for="anydom">{{ form.accept_any_domain.label.text }}</label>
+    <div class="form-text">Permite cadastro com e-mail pessoal (sem exigir domínio corporativo).</div>
+  </div>
+  <div class="mb-3">{{ form.allowed_ips.label(class_='form-label') }}{{ form.allowed_ips(class_='form-control', rows=4) }}
+    <div class="form-text">Um IP ou CIDR por linha. Ex.: 200.100.50.25 ou 200.100.0.0/16</div>
+  </div>
+
+  <h5 class="mt-3">Branding</h5>
+  <div class="row">
+    <div class="col-md-4 mb-3">{{ form.brand_primary.label(class_='form-label') }}{{ form.brand_primary(class_='form-control', placeholder='#2563eb') }}</div>
+    <div class="col-md-4 mb-3">{{ form.brand_primary_dark.label(class_='form-label') }}{{ form.brand_primary_dark(class_='form-control', placeholder='#1d4ed8') }}</div>
+    <div class="col-md-4 mb-3">{{ form.brand_primary_light.label(class_='form-label') }}{{ form.brand_primary_light(class_='form-control', placeholder='#3b82f6') }}</div>
+  </div>
+  <div class="row align-items-end">
+    <div class="col-md-6 mb-3">{{ form.logo_url.label(class_='form-label') }}{{ form.logo_url(class_='form-control', placeholder='https://.../logo.png') }}</div>
+    <div class="col-md-6 mb-3">{{ form.logo_file.label(class_='form-label') }}{{ form.logo_file(class_='form-control') }}<div class="form-text">PNG/JPG. Se enviar arquivo, substitui a URL acima. Aplicamos cache busting automático.</div></div>
+  </div>
+  <div class="mb-3">
+    {{ form.lgpd_url.label(class_='form-label') }}
+    {{ form.lgpd_url(class_='form-control', placeholder='https://.../lgpd') }}
+    <div class="form-text">Link para a política LGPD da empresa. Deixe em branco para usar o padrão do sistema.</div>
+  </div>
+  {% if company and company.logo_url %}
+    <div class="mb-3"><small class="text-muted">Logo atual:</small><br><img src="{{ company.logo_url }}" alt="Logo" style="height:40px" class="rounded mt-1"></div>
+  {% endif %}
+
+  {{ form.submit(class_='btn btn-primary') }}
+  <a class="btn btn-secondary" href="{{ url_for('admin.companies') }}">Cancelar</a>
+</form>
+{% endblock %}

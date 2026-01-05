@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Contratos - Admin{% endblock %}
+{% block content %}
+<h2>Contratos</h2>
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card"><div class="card-body">
+      <h5>Novo Contrato</h5>
+      <form method="post">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+        <div class="mb-3">{{ form.name.label(class_='form-label') }}{{ form.name(class_='form-control') }}</div>
+        <div class="form-check mb-3">{{ form.active(class_='form-check-input') }}{{ form.active.label(class_='form-check-label') }}</div>
+        {{ form.submit(class_='btn btn-primary') }}
+      </form>
+    </div></div>
+  </div>
+  <div class="col-md-7">
+    <div class="card"><div class="card-body">
+      <h5>Lista</h5>
+      <table class="table table-sm">
+        <thead><tr><th>Empresa</th><th>Nome</th><th>Ativo</th><th>Criado em</th></tr></thead>
+        <tbody>
+          {% for ct in items %}
+          <tr>
+            <td>{{ ct.company.name }}</td>
+            <td>{{ ct.name }}</td>
+            <td>{{ 'Sim' if ct.active else 'Não' }}</td>
+            <td>{{ ct.created_at|localtime }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted">Nenhum contrato.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

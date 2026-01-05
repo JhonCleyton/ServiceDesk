@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Requisições de Mudança - Admin{% endblock %}
+{% block content %}
+<h2>Requisições de Mudança</h2>
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card"><div class="card-body">
+      <h5>Nova Requisição</h5>
+      <form method="post">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+        <div class="mb-3">{{ form.title.label(class_='form-label') }}{{ form.title(class_='form-control') }}</div>
+        <div class="mb-3">{{ form.description.label(class_='form-label') }}{{ form.description(class_='form-control', rows=5) }}</div>
+        <div class="row">
+          <div class="col-md-6 mb-3">{{ form.status.label(class_='form-label') }}{{ form.status(class_='form-select') }}</div>
+          <div class="col-md-6 mb-3">{{ form.approval.label(class_='form-label') }}{{ form.approval(class_='form-select') }}</div>
+        </div>
+        {{ form.submit(class_='btn btn-primary') }}
+      </form>
+    </div></div>
+  </div>
+  <div class="col-md-7">
+    <div class="card"><div class="card-body">
+      <h5>Lista</h5>
+      <table class="table table-sm">
+        <thead><tr><th>Empresa</th><th>Título</th><th>Status</th><th>Aprovação</th><th>Criado em</th></tr></thead>
+        <tbody>
+          {% for ch in items %}
+          <tr><td>{{ ch.company.name }}</td><td>{{ ch.title }}</td><td>{{ ch.status }}</td><td>{{ ch.approval }}</td><td>{{ ch.created_at|localtime }}</td></tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Nenhuma requisição.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

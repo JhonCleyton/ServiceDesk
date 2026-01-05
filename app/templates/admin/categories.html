@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Categorias - Admin{% endblock %}
+{% block content %}
+<h2>Categorias</h2>
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card"><div class="card-body">
+      <h5>Nova Categoria</h5>
+      <form method="post">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+        <div class="mb-3">{{ form.name.label(class_='form-label') }}{{ form.name(class_='form-control') }}</div>
+        <div class="mb-3">{{ form.parent_id.label(class_='form-label') }}{{ form.parent_id(class_='form-select') }}</div>
+        {{ form.submit(class_='btn btn-primary') }}
+      </form>
+    </div></div>
+  </div>
+  <div class="col-md-7">
+    <div class="card"><div class="card-body">
+      <h5>Lista</h5>
+      <table class="table table-sm">
+        <thead><tr><th>Empresa</th><th>Categoria</th><th>Pai</th><th class="text-end">Ações</th></tr></thead>
+        <tbody>
+          {% for cat in items %}
+          <tr>
+            <td>{{ cat.company.name if cat.company else 'Global' }}</td>
+            <td>{{ cat.name }}</td>
+            <td>{{ cat.parent.name if cat.parent else '-' }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.category_edit', category_id=cat.id) }}">Editar</a>
+              <form method="post" action="{{ url_for('admin.category_delete', category_id=cat.id) }}" style="display:inline" onsubmit="return confirm('Excluir esta categoria? Esta ação não pode ser desfeita.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted">Nenhuma categoria.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

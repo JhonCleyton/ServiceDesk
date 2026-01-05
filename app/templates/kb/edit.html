@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if article else 'Novo' }} Artigo - KB{% endblock %}
+{% block content %}
+<h2>{{ 'Editar' if article else 'Novo' }} Artigo</h2>
+<form method="post">
+  {{ form.hidden_tag() }}
+  <div class="row">
+    <div class="col-md-6 mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+    <div class="col-md-6 mb-3">{{ form.public.label(class_='form-label d-block') }} {{ form.public(class_='form-check-input ms-2') }}</div>
+  </div>
+  <div class="mb-3">{{ form.title.label(class_='form-label') }}{{ form.title(class_='form-control') }}</div>
+  <div class="mb-3">{{ form.content.label(class_='form-label') }}{{ form.content(class_='form-control', rows=12) }}</div>
+  <div class="mb-3">{{ form.status.label(class_='form-label') }}{{ form.status(class_='form-select') }}</div>
+  {{ form.submit(class_='btn btn-primary') }}
+  <a class="btn btn-outline-secondary" href="{{ url_for('kb.index') }}">Voltar</a>
+</form>
+{% endblock %}

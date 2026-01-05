@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}{{ rev.subject }} - LGPD{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ rev.subject }}</h2>
+        <a href="{{ url_for('admin.lgpd_center') }}" class="btn btn-outline-secondary">
+            Voltar para Revisões
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Versão {{ rev.version }} - {{ rev.company.name if rev.company else 'Global' }}</span>
+                <span class="text-muted">Atualizado em {{ rev.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="lgpd-content">
+                {{ rev.body|safe }}
+            </div>
+        </div>
+        <div class="card-footer text-muted">
+            <small>Criado em {{ rev.created_at.strftime('%d/%m/%Y %H:%M') }} por {{ rev.created_by.name }}</small>
+        </div>
+    </div>
+</div>
+
+<style>
+.lgpd-content {
+    line-height: 1.6;
+    font-size: 1.05rem;
+    white-space: pre-wrap;      /* Preserves line breaks and spaces */
+    word-wrap: break-word;      /* Breaks long words if needed */
+    font-family: inherit;       /* Uses the same font as the rest of the page */
+}
+.lgpd-content h1, 
+.lgpd-content h2, 
+.lgpd-content h3, 
+.lgpd-content h4, 
+.lgpd-content h5, 
+.lgpd-content h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    white-space: normal;       /* Reset for headings */
+}
+.lgpd-content p {
+    margin-bottom: 1rem;
+    white-space: pre-wrap;     /* Preserve formatting in paragraphs */
+}
+.lgpd-content ul, 
+.lgpd-content ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    white-space: normal;       /* Normal behavior for lists */
+}
+.lgpd-content li {
+    white-space: pre-wrap;     /* Preserve formatting in list items */
+}
+.lgpd-content a {
+    color: #0d6efd;
+    text-decoration: none;
+    white-space: normal;       /* Normal behavior for links */
+}
+.lgpd-content a:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

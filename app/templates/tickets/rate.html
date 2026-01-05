@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Avaliar Ticket {{ ticket.number }}{% endblock %}
+{% block content %}
+<h2>Avaliar atendimento</h2>
+<p class="text-muted">Ticket {{ ticket.number }} • {{ ticket.title }}</p>
+<form method="post">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">
+    {{ form.rating.label(class_='form-label') }}
+    {{ form.rating(class_='form-select w-auto') }}
+  </div>
+  <div class="mb-3">
+    {{ form.comment.label(class_='form-label') }}
+    {{ form.comment(class_='form-control', rows=3) }}
+  </div>
+  {{ form.submit(class_='btn btn-primary') }}
+</form>
+{% endblock %}

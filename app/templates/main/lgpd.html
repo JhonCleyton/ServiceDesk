@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}LGPD{% endblock %}
+
+{% block extra_css %}
+<style>
+.lgpd-modal .modal-dialog {
+    max-width: 90%;
+    max-height: 90vh;
+}
+.lgpd-modal .modal-content {
+    height: 100%;
+}
+.lgpd-modal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.lgpd-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.6;
+    font-size: 1.05rem;
+}
+.lgpd-content h1, 
+.lgpd-content h2, 
+.lgpd-content h3, 
+.lgpd-content h4, 
+.lgpd-content h5, 
+.lgpd-content h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    white-space: normal;
+}
+.lgpd-content p {
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+}
+.lgpd-content ul, 
+.lgpd-content ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    white-space: normal;
+}
+.lgpd-content li {
+    white-space: pre-wrap;
+}
+.lgpd-content a {
+    color: #0d6efd;
+    text-decoration: none;
+    white-space: normal;
+}
+.lgpd-content a:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>LGPD e Consentimento</h2>
+    <p class="text-muted">Esta página apresenta os termos de privacidade e o consentimento para tratamento de dados pessoais conforme a LGPD.</p>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            {% if company %}
+                {% if lgpd_url or lgpd_rev %}
+                    <p>Você pode visualizar a política de privacidade da sua empresa:</p>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {% if lgpd_url %}
+                        <a href="{{ lgpd_url }}" target="_blank" class="btn btn-outline-primary" rel="noopener">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Visualizar Política LGPD (apenas administradores)
+                        </a>
+                        {% endif %}
+                        {% if lgpd_rev %}
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#lgpdModal">
+                            <i class="bi bi-file-text me-1"></i>Visualizar Termos
+                        </button>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Nenhuma política LGPD foi configurada para sua empresa.
+                    </div>
+                {% endif %}
+
+                {% if current_user.consent_accepted_at %}
+                    <div class="alert alert-success mt-3 mb-0">
+                        <i class="bi bi-check-circle me-2"></i>Você aceitou o consentimento em {{ current_user.consent_accepted_at|localtime|format_datetime }}.
+                    </div>
+                {% else %}
+                    <form method="post" class="mt-3">
+                        {{ form.hidden_tag() }}
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-shield-check me-1"></i>Aceitar Termos
+                        </button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Você não está associado a nenhuma empresa.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if lgpd_rev %}
+<!-- Modal LGPD -->
+<div class="modal fade lgpd-modal" id="lgpdModal" tabindex="-1" aria-labelledby="lgpdModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lgpdModalLabel">{{ lgpd_rev.subject }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="lgpd-content" style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit;">
+                    {{ lgpd_rev.body|safe }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                {% if not current_user.consent_accepted_at %}
+                <form method="post" class="d-inline">
+                    {{ form.hidden_tag() }}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-shield-check me-1"></i>Aceitar Termos
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% block title %}Chamado {{ ticket.number }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h2>{{ ticket.title }}</h2>
+  <span class="badge text-bg-secondary">{{ ticket.number }}</span>
+</div>
+<p class="text-muted">Status: <strong>{{ ticket.status }}</strong> • Prioridade: <strong>{{ ticket.priority }}</strong>
+{% if ticket.queue %} • Fila: <strong>{{ ticket.queue.name }}</strong>{% endif %}
+{% if ticket.category %} • Categoria: <strong>{{ ticket.category }}</strong>{% endif %}
+{% if ticket.subcategory %} • Subcategoria: <strong>{{ ticket.subcategory }}</strong>{% endif %}
+{% if current_user.is_authenticated and ticket.created_by_id == current_user.id and ticket.status == 'Fechado' and not ticket.user_rating_at %}
+<div class="alert alert-success d-flex justify-content-between align-items-center">
+  <div>
+    O chamado foi encerrado. Sua opinião é importante! Deseja avaliar o atendimento?
+  </div>
+  <a class="btn btn-sm btn-primary" href="{{ url_for('tickets.rate_auth', ticket_id=ticket.id) }}"><i class="bi bi-star-half me-1"></i>Avaliar</a>
+  </div>
+{% endif %}
+{% if ticket.asset %} • Ativo: <strong>{{ ticket.asset.name }}</strong>{% endif %}
+</p>
+{% if current_user.role != 'client' %}
+<div class="card mb-3">
+  <div class="card-body d-flex justify-content-between align-items-center">
+    <div>
+      <div class="fw-bold">Dados do Cliente</div>
+      <div class="small text-muted">Empresa: <strong>{{ (ticket.creator.company.name if ticket.creator and ticket.creator.company else ticket.company.name) }}</strong></div>
+      <div class="small">Nome: <strong>{{ ticket.creator.name if ticket.creator else '—' }}</strong></div>
+      <div class="small">E-mail: <a href="mailto:{{ ticket.creator.email if ticket.creator else '' }}">{{ ticket.creator.email if ticket.creator else '—' }}</a></div>
+    </div>
+    <a class="btn btn-outline-primary" href="mailto:{{ ticket.creator.email if ticket.creator else '' }}?subject=Sobre%20o%20chamado%20{{ ticket.number }}">
+      <i class="bi bi-envelope me-1"></i>Contatar por e-mail
+    </a>
+  </div>
+</div>
+{% endif %}
+{% if current_user.role == 'client' and ticket.status in ['Novo','Em atendimento','Aguardando'] %}
+<div class="alert alert-info d-flex justify-content-between align-items-center">
+  <div>
+    Enquanto você aguarda o atendimento, que tal relaxar na nossa <strong>Sala de Espera</strong> com mini‑jogos e ranking global?
+  </div>
+  <a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.waiting_room') }}"><i class="bi bi-joystick me-1"></i>Ir para Sala de Espera</a>
+  </div>
+{% endif %}
+{% if ticket.due_first_response_at or ticket.due_resolution_at %}
+<div class="alert alert-light border">
+  <div class="d-flex flex-wrap gap-3">
+    {% if ticket.due_first_response_at %}
+    <div>1ª resposta até: <strong>{{ ticket.due_first_response_at|localtime }}</strong>{% if ticket.first_response_at %} • Respondido em: <strong>{{ ticket.first_response_at|localtime }}</strong>{% endif %}</div>
+    {% endif %}
+    {% if ticket.due_resolution_at %}
+    <div>Resolução até: <strong>{{ ticket.due_resolution_at|localtime }}</strong>{% if ticket.resolved_at %} • Resolvido em: <strong>{{ ticket.resolved_at|localtime }}</strong>{% endif %}</div>
+    {% endif %}
+    {% if current_user.role != 'client' %}
+      {% if not ticket.sla_paused %}
+      <form method="post" action="{{ url_for('tickets.pause_sla', ticket_id=ticket.id) }}">
+        {{ form.csrf_token }}
+        <button class="btn btn-sm btn-outline-warning" type="submit">Pausar SLA</button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ url_for('tickets.resume_sla', ticket_id=ticket.id) }}">
+        {{ form.csrf_token }}
+        <button class="btn btn-sm btn-outline-success" type="submit">Retomar SLA</button>
+      </form>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if ticket.sla_paused and ticket.sla_paused_since %}
+  <small class="text-muted">SLA pausado desde {{ ticket.sla_paused_since|localtime }}</small>
+  {% endif %}
+</div>
+{% endif %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5>Descrição</h5>
+    <p>{{ ticket.description | e }}</p>
+    {% if ticket.attachments %}
+    <h6 class="mt-3">Anexos</h6>
+    <div class="row g-3">
+      {% for a in ticket.attachments %}
+      {% set name = (a.original_name or '')|lower %}
+      {% set is_img = name.endswith('.png') or name.endswith('.jpg') or name.endswith('.jpeg') or name.endswith('.gif') or name.endswith('.webp') %}
+      {% set is_pdf = name.endswith('.pdf') %}
+      {% set is_video = name.endswith('.mp4') or name.endswith('.webm') or name.endswith('.ogg') %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="attachment-tile p-2 border rounded text-center h-100">
+          {% if is_img %}
+            <a class="lb-open" data-type="image" href="{{ url_for('tickets.view_attachment', ticket_id=ticket.id, attachment_id=a.id) }}">
+              <img src="{{ url_for('tickets.view_attachment', ticket_id=ticket.id, attachment_id=a.id) }}" class="img-fluid rounded shadow-sm attachment-thumb" alt="{{ a.original_name }}">
+            </a>
+          {% elif is_video %}
+            <div class="py-3 small text-muted">Vídeo</div>
+          {% else %}
+            <div class="py-3 small text-muted">{{ a.original_name }}</div>
+          {% endif %}
+          <div class="d-flex justify-content-center gap-2 mt-2">
+            {% if is_img %}
+              <a class="btn btn-sm btn-outline-primary lb-open" data-type="image" href="{{ url_for('tickets.view_attachment', ticket_id=ticket.id, attachment_id=a.id) }}">Ver</a>
+            {% elif is_video %}
+              <a class="btn btn-sm btn-outline-primary lb-open" data-type="video" href="{{ url_for('tickets.view_attachment', ticket_id=ticket.id, attachment_id=a.id) }}">Ver</a>
+            {% else %}
+              <a class="btn btn-sm btn-outline-primary view-attachment" target="_blank" href="{{ url_for('tickets.view_attachment', ticket_id=ticket.id, attachment_id=a.id) }}" {% if is_pdf %}data-type="pdf"{% endif %}>Ver</a>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('tickets.download_attachment', ticket_id=ticket.id, attachment_id=a.id) }}">Baixar</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+ </div>
+
+{% if current_user.role != 'client' %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5>Atendimento</h5>
+    {% if can_staff_interact %}
+      <form method="post" action="{{ url_for('tickets.assign', ticket_id=ticket.id) }}" class="row g-3 align-items-end">
+        {{ assign_form.hidden_tag() }}
+        <div class="col-md-5">
+          {{ assign_form.assignee_id.label(class_='form-label') }}
+          {{ assign_form.assignee_id(class_='form-select') }}
+        </div>
+        <div class="col-md-3">
+          {{ assign_form.status.label(class_='form-label') }}
+          {{ assign_form.status(class_='form-select') }}
+        </div>
+        <div class="col-md-3">
+          {{ assign_form.queue_id.label(class_='form-label') }}
+          {{ assign_form.queue_id(class_='form-select') }}
+        </div>
+        <div class="col-md-1">
+          {{ assign_form.submit(class_='btn btn-primary w-100') }}
+        </div>
+      </form>
+      <div class="d-flex gap-2 mt-3">
+        <form method="post" action="{{ url_for('tickets.resolve', ticket_id=ticket.id) }}" class="d-flex gap-2">
+          {{ resolve_form.hidden_tag() }}
+          {{ resolve_form.solution(class_='form-control', placeholder='Descreva a solução') }}
+          {{ resolve_form.submit(class_='btn btn-success') }}
+        </form>
+        <form method="post" action="{{ url_for('tickets.close', ticket_id=ticket.id) }}" class="row g-2">
+          {{ close_form.hidden_tag() }}
+          <div class="col-md-4">
+            {{ close_form.reason(class_='form-control', placeholder='Motivo do encerramento') }}
+          </div>
+          <div class="col-md-3">
+            {{ close_form.tech_eval_category(class_='form-select') }}
+          </div>
+          <div class="col-12">
+            {{ close_form.tech_evaluation(class_='form-control', rows=2, placeholder='Avaliação técnica: o que foi pedido, como foi resolvido, causa (técnica/sistêmica/usuário), etc.') }}
+          </div>
+          <div class="col-auto">
+            {{ close_form.submit(class_='btn btn-secondary') }}
+          </div>
+        </form>
+        {% if ticket.status in ['Resolvido','Fechado'] %}
+        <form method="post" action="{{ url_for('tickets.reopen', ticket_id=ticket.id) }}">
+          {{ form.csrf_token }}
+          <button class="btn btn-outline-primary" type="submit">Reabrir</button>
+        </form>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="alert alert-light border d-flex justify-content-between align-items-center">
+        <div>
+          {% if ticket.assignee %}
+            Este chamado está sendo atendido por <strong>{{ ticket.assignee.name }}</strong>.
+          {% else %}
+            Sem técnico responsável. Atribua-se ou solicite a um supervisor.
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+    {% if participants_enabled %}
+    <hr>
+    <div class="d-flex flex-column gap-2">
+      <div class="fw-bold">Equipe no atendimento</div>
+      <div class="small text-muted">Técnicos convidados podem comentar e reagir. Apenas responsável/supervisor/admin podem resolver/encerrar.</div>
+      <ul class="list-group">
+        {% for p in participants %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div><i class="bi bi-person-workspace me-1"></i>{{ p.user.name }}</div>
+          {% if can_staff_interact %}
+          <form method="post" action="{{ url_for('tickets.remove_participant', ticket_id=ticket.id, participant_id=p.id) }}" class="m-0">
+            {{ form.csrf_token }}
+            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg me-1"></i>Remover</button>
+          </form>
+          {% endif %}
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">Nenhum participante convidado.</li>
+        {% endfor %}
+      </ul>
+      {% if can_staff_interact and participant_candidates %}
+      <form method="post" action="{{ url_for('tickets.add_participant', ticket_id=ticket.id) }}" class="d-flex gap-2 align-items-end">
+        {{ form.csrf_token }}
+        <div style="max-width:320px;">
+          <label for="inviteUser" class="form-label">Convidar técnico</label>
+          <select id="inviteUser" name="user_id" class="form-select">
+            {% for u in participant_candidates %}
+            <option value="{{ u.id }}">{{ u.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-outline-primary" type="submit"><i class="bi bi-person-plus me-1"></i>Adicionar</button>
+        </div>
+      </form>
+      {% endif %}
+      {% if can_staff_interact and transfer_candidates %}
+      <form method="post" action="{{ url_for('tickets.assign', ticket_id=ticket.id) }}" class="d-flex gap-2 align-items-end mt-2">
+        {{ form.csrf_token }}
+        <div style="max-width:320px;">
+          <label for="transferUser" class="form-label">Transferir atendimento para</label>
+          <select id="transferUser" name="assignee_id" class="form-select">
+            {% for u in transfer_candidates %}
+            <option value="{{ u.id }}">{{ u.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <input type="hidden" name="status" value="{{ ticket.status }}">
+        <input type="hidden" name="queue_id" value="{{ ticket.queue_id or 0 }}">
+        <div>
+          <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-arrow-left-right me-1"></i>Transferir</button>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<h5>Interações</h5>
+<div class="chat-thread mb-3" data-ticket-id="{{ ticket.id }}">
+  {% for c in comments %}
+    {% if current_user.role != 'client' or not c.internal %}
+    {% set mine = (c.user_id == current_user.id) %}
+    {% set parts = (c.user.name or '')|split(' ') %}
+    {% set initials = (parts[0][0] if parts|length > 0 else '') ~ (parts[1][0] if parts|length > 1 else '') %}
+    {% set hue = (c.user.id * 47) % 360 %}
+    <div class="chat-row {{ 'me' if mine else 'other' }}" data-comment-id="{{ c.id }}">
+      {% if not mine %}
+      {% if c.user.avatar_filename %}
+      <div class="avatar p-0"><img src="{{ url_for('static', filename='uploads/avatars/' ~ c.user.avatar_filename) }}" class="avatar-img" alt="{{ c.user.name }}"></div>
+      {% else %}
+      <div class="avatar" style="background:hsl({{ hue }},70%,45%)">{{ initials|upper }}</div>
+      {% endif %}
+      {% endif %}
+      <div class="bubble">
+        <div class="meta">
+          <span class="name">{{ c.user.name }}</span>
+          <span class="time">{{ c.created_at|localtime }}{% if c.internal %} • Interno{% endif %}</span>
+        </div>
+        <div class="text">{{ c.content | e | replace('\n','') | safe }}</div>
+        <div class="reactions d-flex align-items-center gap-2 mt-1">
+          {% if ticket.status != 'Fechado' and (current_user.role == 'client' or can_staff_interact) %}
+          <div class="btn-group btn-group-sm" role="group" aria-label="Reagir">
+            {% for e in ['👍','❤️','😀','👀','🙏'] %}
+            <button type="button" class="btn btn-outline-secondary react-btn" data-emoji="{{ e }}">{{ e }}</button>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <div class="reaction-counts small text-muted" data-comment-id="{{ c.id }}"></div>
+        </div>
+      </div>
+      {% if mine %}
+      {% if c.user.avatar_filename %}
+      <div class="avatar p-0"><img src="{{ url_for('static', filename='uploads/avatars/' ~ c.user.avatar_filename) }}" class="avatar-img" alt="{{ c.user.name }}"></div>
+      {% else %}
+      <div class="avatar" style="background:hsl({{ hue }},70%,45%)">{{ initials|upper }}</div>
+      {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+  {% else %}
+    <div class="text-muted">Sem comentários ainda.</div>
+  {% endfor %}
+  </div>
+
+{% if ticket.status != 'Fechado' and (current_user.role == 'client' or can_staff_interact) %}
+<h5>Novo comentário</h5>
+<form method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">
+    {{ form.content.label(class_='form-label') }}
+    {{ form.content(class_='form-control', rows=3) }}
+  </div>
+  {% if current_user.role != 'client' %}
+  <div class="form-check mb-3">
+    {{ form.internal(class_='form-check-input') }}
+    {{ form.internal.label(class_='form-check-label') }}
+  </div>
+  {% endif %}
+  <div class="mb-3">
+    {{ form.attachments.label(class_='form-label') }}
+    <div class="dropzone border rounded p-3">
+      <div class="text-muted">Arraste e solte arquivos aqui ou clique para selecionar</div>
+      {{ form.attachments(class_='form-control d-none', id='comment-attachments', multiple=true, **{'data-preview':'#comment-previews'}) }}
+    </div>
+    <div id="comment-previews" class="previews row g-2 mt-2"></div>
+  </div>
+  {{ form.submit(class_='btn btn-primary') }}
+</form>
+{% endif %}
+
+<!-- Modal para visualizar PDF -->
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Visualizador de PDF</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" style="height:80vh">
+        <iframe id="pdfViewer" src="" width="100%" height="100%" style="border:0"></iframe>
+      </div>
+    </div>
+  </div>
+  </div>
+<!-- Lightbox Modal -->
+<div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img class="lightbox-image d-none" alt="preview">
+        <video class="lightbox-video d-none" playsinline></video>
+      </div>
+    </div>
+  </div>
+ </div>
+{% endblock %}

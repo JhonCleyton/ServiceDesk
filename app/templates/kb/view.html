@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}{{ article.title }} - KB{% endblock %}
+{% block content %}
+<h2>{{ article.title }}</h2>
+<div class="text-muted mb-2">{{ 'Público' if article.public else 'Interno' }} • {{ article.status }} • Atualizado em {{ article.updated_at|localtime }}</div>
+<div class="card"><div class="card-body">
+  <div style="white-space: pre-wrap;">{{ article.content }}</div>
+</div></div>
+{% if current_user.role in ['admin','supervisor','tech'] %}
+  <a class="btn btn-outline-secondary mt-3" href="{{ url_for('kb.edit', article_id=article.id) }}">Editar</a>
+{% endif %}
+{% endblock %}

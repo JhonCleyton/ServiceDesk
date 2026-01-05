@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}LGPD - Revisões{% endblock %}
+
+{% block extra_css %}
+<style>
+.lgpd-modal .modal-dialog {
+    max-width: 90%;
+    max-height: 90vh;
+}
+.lgpd-modal .modal-content {
+    height: 100%;
+}
+.lgpd-modal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h2>LGPD - Revisões por Empresa</h2>
+</div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <h5 class="card-title">Nova Revisão</h5>
+      <form method="post">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+        <div class="mb-3">{{ form.subject.label(class_='form-label') }}{{ form.subject(class_='form-control') }}</div>
+        <div class="mb-3">{{ form.body.label(class_='form-label') }}{{ form.body(class_='form-control', rows=10) }}</div>
+        <div class="form-check mb-3">{{ form.publish_now(class_='form-check-input', id='pubnow') }}<label for="pubnow" class="form-check-label">{{ form.publish_now.label.text }}</label></div>
+        {{ form.submit(class_='btn btn-primary') }}
+      </form>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Histórico de Revisões</h5>
+        <form method="get" class="d-flex align-items-center gap-2">
+          <select class="form-select" style="width:auto" name="company_id">
+            {% for c in companies %}
+              <option value="{{ c.id }}" {% if c.id == selected_company_id %}selected{% endif %}>{{ c.name }} ({{ c.domain }})</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+        </form>
+      </div>
+      <table class="table table-sm mt-3">
+        <thead><tr><th>Versão</th><th>Assunto</th><th>Criado em</th><th>Publicado</th><th>Ações</th></tr></thead>
+        <tbody>
+          {% for r in items %}
+          <tr>
+            <td>v{{ r.version }}</td>
+            <td>{{ r.subject }}</td>
+            <td>{{ r.created_at|localtime }}</td>
+            <td>{{ 'Sim' if r.published else 'Não' }}</td>
+            <td>
+              {% if not r.published %}
+              <form method="post" action="{{ url_for('admin.lgpd_publish', rev_id=r.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-primary">Publicar</button>
+              </form>
+              {% endif %}
+              <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#lgpdModal{{ r.id }}">
+                Visualizar
+              </button>
+              
+              <!-- Modal -->
+              <div class="modal fade lgpd-modal" id="lgpdModal{{ r.id }}" tabindex="-1" aria-labelledby="lgpdModalLabel{{ r.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="lgpdModalLabel{{ r.id }}">{{ r.subject }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="lgpd-content" style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit;">
+                        {{ r.body|safe }}
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                      {% if not r.published %}
+                      <form method="post" action="{{ url_for('admin.lgpd_publish', rev_id=r.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary">Publicar</button>
+                      </form>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Nenhuma revisão para esta empresa.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

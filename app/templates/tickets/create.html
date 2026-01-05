@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Novo Chamado{% endblock %}
+{% block content %}
+<h2>Novo chamado</h2>
+<form method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">
+    {{ form.title.label(class_='form-label') }}
+    {{ form.title(class_='form-control', id='title') }}
+  </div>
+  <div class="mb-3">
+    {{ form.description.label(class_='form-label') }}
+    {{ form.description(class_='form-control', rows=5, id='description') }}
+  </div>
+  <div class="card mb-3">
+    <div class="card-body">
+      <h6 class="card-title">Sugestões da Base de Conhecimento</h6>
+      <ul id="kb-suggest" class="list-group"></ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      {{ form.priority.label(class_='form-label') }}
+      {{ form.priority(class_='form-select') }}
+    </div>
+    <div class="col-md-4 mb-3">
+      {{ form.cat_parent_id.label(class_='form-label') }}
+      {{ form.cat_parent_id(class_='form-select', id='cat_parent_id') }}
+    </div>
+    <div class="col-md-4 mb-3">
+      {{ form.cat_child_id.label(class_='form-label') }}
+      {{ form.cat_child_id(class_='form-select', id='cat_child_id') }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      {{ form.contract_id.label(class_='form-label') }}
+      {{ form.contract_id(class_='form-select') }}
+    </div>
+    <div class="col-md-6 mb-3"></div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      {{ form.queue_id.label(class_='form-label') }}
+      {{ form.queue_id(class_='form-select') }}
+    </div>
+    <div class="col-md-6 mb-3">
+      {{ form.asset_id.label(class_='form-label') }}
+      {{ form.asset_id(class_='form-select') }}
+    </div>
+  </div>
+  <div class="mb-3">
+    {{ form.attachments.label(class_='form-label') }}
+    <div id="dropzone" class="dropzone border rounded p-3 text-center">
+      Arraste e solte arquivos aqui ou clique para selecionar
+      {{ form.attachments(class_='form-control d-none', id='create-attachments', multiple=true, **{'data-preview':'#create-previews'}) }}
+    </div>
+    <small class="text-muted">Tipos permitidos: imagens, PDF, logs, planilhas, docs, zip.</small>
+    <div id="create-previews" class="previews row g-2 mt-2"></div>
+  </div>
+  {{ form.submit(class_='btn btn-primary') }}
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const parentSel = document.getElementById('cat_parent_id');
+  const childSel = document.getElementById('cat_child_id');
+  async function loadChildren(parentId) {
+    // Reset children
+    childSel.innerHTML = '';
+    const optNone = document.createElement('option');
+    optNone.value = '0';
+    optNone.textContent = '— Sem subcategoria —';
+    childSel.appendChild(optNone);
+    if (!parentId || parentId === '0') return;
+    try {
+      const resp = await fetch(`{{ url_for('tickets.categories_children') }}?parent_id=${encodeURIComponent(parentId)}`, {credentials: 'same-origin'});
+      if (!resp.ok) return;
+      const data = await resp.json();
+      (data.items || []).forEach(function(item) {
+        const o = document.createElement('option');
+        o.value = item.id;
+        o.textContent = item.name;
+        childSel.appendChild(o);
+      });
+    } catch (e) {}
+  }
+  parentSel && parentSel.addEventListener('change', function(e) {
+    loadChildren(e.target.value);
+  });
+});
+</script>
+{% endblock %}

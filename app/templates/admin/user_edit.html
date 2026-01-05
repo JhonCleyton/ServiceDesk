@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Editar Usuário - Admin{% endblock %}
+{% block content %}
+<h2>Editar Usuário</h2>
+<form method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div class="row">
+    <div class="col-md-6 mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+    <div class="col-md-6 mb-3">{{ form.role.label(class_='form-label') }}{{ form.role(class_='form-select') }}</div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">{{ form.name.label(class_='form-label') }}{{ form.name(class_='form-control') }}</div>
+    <div class="col-md-6 mb-3">{{ form.email.label(class_='form-label') }}{{ form.email(class_='form-control') }}</div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">{{ form.password.label(class_='form-label') }}{{ form.password(class_='form-control') }}<div class="form-text">Opcional: preencha para alterar a senha.</div></div>
+    <div class="col-md-3 mb-3 form-check">{{ form.confirmed(class_='form-check-input', id='confirmed') }}<label class="form-check-label ms-2" for="confirmed">{{ form.confirmed.label.text }}</label></div>
+    <div class="col-md-3 mb-3 form-check">{{ form.force_2fa(class_='form-check-input', id='force2fa') }}<label class="form-check-label ms-2" for="force2fa">{{ form.force_2fa.label.text }}</label></div>
+  </div>
+  <div class="row align-items-end">
+    <div class="col-md-6 mb-3">{{ form.avatar_file.label(class_='form-label') }}{{ form.avatar_file(class_='form-control') }}<div class="form-text">PNG/JPG. Mostraremos como círculo ao lado das mensagens.</div></div>
+    <div class="col-md-6 mb-3">
+      {% if user and user.avatar_filename %}
+        <div class="d-flex align-items-center gap-2"><img src="{{ url_for('static', filename='uploads/avatars/' ~ user.avatar_filename) }}" alt="Avatar atual" style="width:48px;height:48px;border-radius:50%"> <small class="text-muted">Avatar atual</small></div>
+      {% endif %}
+    </div>
+  </div>
+  {{ form.submit(class_='btn btn-primary') }}
+  <a class="btn btn-secondary" href="{{ url_for('admin.users') }}">Cancelar</a>
+</form>
+{% endblock %}

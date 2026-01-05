@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Empresas - Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h2>Empresas</h2>
+</div>
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Nova Empresa</h5>
+        <form method="post" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">{{ form.name.label(class_='form-label') }}{{ form.name(class_='form-control') }}</div>
+          <div class="mb-3">{{ form.domain.label(class_='form-label') }}{{ form.domain(class_='form-control') }}</div>
+          <div class="mb-3">{{ form.terms_url.label(class_='form-label') }}{{ form.terms_url(class_='form-control') }}</div>
+          <div class="row">
+            <div class="col-md-6 mb-3">{{ form.consent_required(class_='form-check-input') }} {{ form.consent_required.label(class_='form-check-label ms-2') }}</div>
+            <div class="col-md-6 mb-3">{{ form.retention_days.label(class_='form-label') }}{{ form.retention_days(class_='form-control') }}</div>
+          </div>
+          <div class="mb-3">{{ form.accept_any_domain(class_='form-check-input', id='anydom') }}<label class="form-check-label ms-2" for="anydom">{{ form.accept_any_domain.label.text }}</label>
+            <div class="form-text">Permite cadastro com e-mail pessoal (sem exigir domínio corporativo).</div>
+          </div>
+          <div class="mb-3">{{ form.allowed_ips.label(class_='form-label') }}{{ form.allowed_ips(class_='form-control', rows=4) }}
+            <div class="form-text">Um IP ou CIDR por linha. Ex.: 200.100.50.25 ou 200.100.0.0/16</div>
+          </div>
+          <h6 class="mt-3">Branding (opcional)</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">{{ form.brand_primary.label(class_='form-label') }}{{ form.brand_primary(class_='form-control', placeholder='#2563eb') }}</div>
+            <div class="col-md-6 mb-3">{{ form.brand_primary_dark.label(class_='form-label') }}{{ form.brand_primary_dark(class_='form-control', placeholder='#1d4ed8') }}</div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">{{ form.brand_primary_light.label(class_='form-label') }}{{ form.brand_primary_light(class_='form-control', placeholder='#3b82f6') }}</div>
+            <div class="col-md-6 mb-3">{{ form.logo_url.label(class_='form-label') }}{{ form.logo_url(class_='form-control', placeholder='https://.../logo.png') }}</div>
+          </div>
+          <div class="mb-3">{{ form.logo_file.label(class_='form-label') }}{{ form.logo_file(class_='form-control') }}
+            <div class="form-text">Opcional: envie um arquivo de logo (PNG/JPG). O arquivo será salvo localmente.</div>
+          </div>
+          {{ form.submit(class_='btn btn-primary') }}
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Lista</h5>
+        <table class="table table-sm">
+          <thead><tr><th>Nome</th><th>Domínio</th><th>Ativa</th><th>Consent.</th><th>Retenção</th><th>Criado em</th><th class="text-end">Ações</th></tr></thead>
+          <tbody>
+            {% for c in items %}
+            <tr>
+              <td>{{ c.name }}</td>
+              <td>{{ c.domain }}</td>
+              <td>
+                {% if c.active %}
+                  <span class="badge bg-success">Ativa</span>
+                {% else %}
+                  <span class="badge bg-secondary">Inativa</span>
+                {% endif %}
+              </td>
+              <td>{{ 'Sim' if c.consent_required else 'Não' }}</td>
+              <td>{{ c.retention_days }}d</td>
+              <td>{{ c.created_at|localtime }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.company_edit', company_id=c.id) }}">Editar</a>
+                {% if c.active %}
+                <form method="post" action="{{ url_for('admin.company_toggle_active', company_id=c.id) }}" style="display:inline" onsubmit="return confirm('Deseja inativar esta empresa?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-warning" type="submit">Inativar</button>
+                </form>
+                {% else %}
+                <form method="post" action="{{ url_for('admin.company_toggle_active', company_id=c.id) }}" style="display:inline" onsubmit="return confirm('Deseja ativar esta empresa?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-sm btn-outline-success" type="submit">Ativar</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted">Nenhuma empresa.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

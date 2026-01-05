@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Ferramentas - Admin{% endblock %}
+{% block content %}
+<h2>Ferramentas</h2>
+<p>Utilitários administrativos manuais para dev/teste.</p>
+<div class="d-flex gap-2">
+  <form method="post" action="{{ url_for('admin.tools_poll_imap') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-primary" type="submit">Processar IMAP (e-mails)</button></form>
+  <form method="post" action="{{ url_for('admin.tools_run_automations') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-secondary" type="submit">Executar Automações</button></form>
+  <form method="post" action="{{ url_for('admin.tools_run_retention') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger" type="submit">Executar Retenção</button></form>
+</div>
+<hr>
+<h5>Teste de E-mail</h5>
+<form method="post" action="{{ url_for('admin.tools_send_test_email') }}" class="row g-2 align-items-end">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="col-md-4">
+    <label class="form-label">Destinatário</label>
+    <input type="email" class="form-control" name="to" placeholder="email@exemplo.com" required>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label">Assunto (opcional)</label>
+    <input type="text" class="form-control" name="subject" placeholder="Teste de e-mail">
+  </div>
+  <div class="col-md-4">
+    <button class="btn btn-primary" type="submit">Enviar e-mail de teste</button>
+  </div>
+</form>
+{% endblock %}

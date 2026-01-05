@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Ativos - Admin{% endblock %}
+{% block content %}
+<h2>Ativos</h2>
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card"><div class="card-body">
+      <h5>Novo Ativo</h5>
+      <form method="post">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+        <div class="mb-3">{{ form.name.label(class_='form-label') }}{{ form.name(class_='form-control') }}</div>
+        <div class="row">
+          <div class="col-md-6 mb-3">{{ form.serial.label(class_='form-label') }}{{ form.serial(class_='form-control') }}</div>
+          <div class="col-md-6 mb-3">{{ form.type.label(class_='form-label') }}{{ form.type(class_='form-control') }}</div>
+        </div>
+        <div class="form-check mb-3">{{ form.active(class_='form-check-input') }}{{ form.active.label(class_='form-check-label') }}</div>
+        {{ form.submit(class_='btn btn-primary') }}
+      </form>
+    </div></div>
+  </div>
+  <div class="col-md-7">
+    <div class="card"><div class="card-body">
+      <h5>Lista</h5>
+      <table class="table table-sm">
+        <thead><tr><th>Empresa</th><th>Nome</th><th>Serial</th><th>Tipo</th><th>Ativo</th></tr></thead>
+        <tbody>
+          {% for a in items %}
+          <tr><td>{{ a.company.name }}</td><td>{{ a.name }}</td><td>{{ a.serial or '-' }}</td><td>{{ a.type or '-' }}</td><td>{{ 'Sim' if a.active else 'Não' }}</td></tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">Nenhum ativo.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

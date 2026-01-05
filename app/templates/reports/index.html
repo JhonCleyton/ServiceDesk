@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Relatórios{% endblock %}
+{% block content %}
+<h2>Relatórios e KPIs</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <ul class="nav nav-pills">
+    <li class="nav-item"><a class="nav-link {{ 'active' if period == 'all' else '' }}" href="{{ url_for('reports.index', period='all') }}">Todos</a></li>
+    <li class="nav-item"><a class="nav-link {{ 'active' if period == 'today' else '' }}" href="{{ url_for('reports.index', period='today') }}">Hoje</a></li>
+    <li class="nav-item"><a class="nav-link {{ 'active' if period == 'week' else '' }}" href="{{ url_for('reports.index', period='week') }}">7 dias</a></li>
+    <li class="nav-item"><a class="nav-link {{ 'active' if period == 'month' else '' }}" href="{{ url_for('reports.index', period='month') }}">30 dias</a></li>
+  </ul>
+  <a class="btn btn-outline-primary" href="{{ url_for('reports.export_csv', period=period) }}">Exportar CSV</a>
+  </div>
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Total de Chamados</div><div class="display-6">{{ total }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card"><div class="card-body"><div class="text-muted">Média de Satisfação (Geral)</div><div class="display-6">{{ avg_overall|round(1) if avg_overall is not none else '—' }}</div></div></div>
+  </div>
+  <div class="col-md-3 d-flex align-items-stretch"></div>
+</div>
+<div class="row g-3 mt-3">
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <h5>Por Status</h5>
+      <ul class="list-group">
+        {% for k,v in by_status.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ k }}</span><span class="badge text-bg-secondary">{{ v }}</span></li>
+        {% else %}
+        <li class="list-group-item text-muted">Sem dados.</li>
+        {% endfor %}
+      </ul>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card"><div class="card-body">
+      <h5>Por Prioridade</h5>
+      <ul class="list-group">
+        {% for k,v in by_priority.items() %}
+        <li class="list-group-item d-flex justify-content-between"><span>{{ k }}</span><span class="badge text-bg-secondary">{{ v }}</span></li>
+        {% else %}
+        <li class="list-group-item text-muted">Sem dados.</li>
+        {% endfor %}
+      </ul>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3 mt-3">
+  <div class="col-md-7">
+    <div class="card"><div class="card-body">
+      <h5>Satisfação por Empresa</h5>
+      <canvas id="companyChart" height="140" aria-label="Gráfico de barras de satisfação por empresa"></canvas>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th class="text-center">Média</th>
+              <th class="text-center">Avaliações</th>
+              <th class="text-center">Chamados</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cname, total_tickets in by_company.items() %}
+            {% set r = ratings_by_company.get(cname) %}
+            <tr>
+              <td>{{ cname }}</td>
+              <td class="text-center">{{ (r.avg|round(1)) if r and r.avg is not none else '—' }}</td>
+              <td class="text-center">{{ r.count if r else 0 }}</td>
+              <td class="text-center">{{ total_tickets }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted">Sem dados.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div></div>
+  </div>
+  <div class="col-md-5">
+    <div class="card"><div class="card-body">
+      <h5>Avaliações Recentes</h5>
+      <canvas id="trendChart" height="120" class="mb-3" aria-label="Tendência de satisfação diária"></canvas>
+      <div class="list-group list-group-flush">
+        {% for t in recent_ratings %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between small text-muted">
+            <span>{{ t.company.name if t.company else '—' }}</span>
+            <span>{{ t.user_rating_at|localtime }}</span>
+          </div>
+          <div class="fw-semibold">#{{ t.number }} · {{ t.title }}</div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="text-warning">{% for i in range(0, t.user_rating or 0) %}★{% endfor %}{% for i in range(0, 5 - (t.user_rating or 0)) %}☆{% endfor %}</span>
+            <span class="badge text-bg-secondary">{{ t.user_rating }}/5</span>
+          </div>
+          {% if t.user_rating_comment %}
+          <div class="small mt-1" style="white-space: pre-wrap;">{{ t.user_rating_comment }}</div>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="list-group-item text-muted">Sem avaliações até o momento.</div>
+        {% endfor %}
+      </div>
+    </div></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  (function(){
+    const companyCtx = document.getElementById('companyChart');
+    if (companyCtx) {
+      new Chart(companyCtx, {
+        type: 'bar',
+        data: {
+          labels: {{ company_labels|tojson }},
+          datasets: [{
+            label: 'Satisfação média',
+            data: {{ company_avgs|tojson }},
+            backgroundColor: 'rgba(37, 99, 235, 0.5)',
+            borderColor: 'rgba(37, 99, 235, 1)',
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+      new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels: {{ trend_labels|tojson }},
+          datasets: [{
+            label: 'Média diária',
+            data: {{ trend_avgs|tojson }},
+            borderColor: 'rgba(16, 185, 129, 1)',
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            tension: 0.3,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { suggestedMin: 0, suggestedMax: 5, ticks: { stepSize: 1 } } }
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}

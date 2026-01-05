@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Editar Categoria - Admin{% endblock %}
+{% block content %}
+<h2>Editar Categoria</h2>
+<form method="post">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">{{ form.company_id.label(class_='form-label') }}{{ form.company_id(class_='form-select') }}</div>
+  <div class="mb-3">{{ form.name.label(class_='form-label') }}{{ form.name(class_='form-control') }}</div>
+  <div class="mb-3">{{ form.parent_id.label(class_='form-label') }}{{ form.parent_id(class_='form-select') }}</div>
+  {{ form.submit(class_='btn btn-primary') }}
+  <a class="btn btn-secondary" href="{{ url_for('admin.categories') }}">Cancelar</a>
+</form>
+{% endblock %}

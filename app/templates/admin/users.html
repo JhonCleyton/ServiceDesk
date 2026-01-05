@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Usuários - Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h2>Usuários</h2>
+  <a class="btn btn-primary" href="{{ url_for('admin.user_create') }}">Novo Usuário</a>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr><th>Nome</th><th>E-mail</th><th>Empresa</th><th>Perfil</th><th>Confirmado</th><th>2FA</th><th>Ação</th></tr>
+  </thead>
+  <tbody>
+    {% for u in items %}
+    <tr>
+      <td>{{ u.name }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.company.name }}</td>
+      <td>{{ u.role }}</td>
+      <td>{{ 'Sim' if u.confirmed else 'Não' }}</td>
+      <td>{{ 'On' if u.force_2fa else 'Off' }}</td>
+      <td>
+        <form method="post" class="d-flex gap-2 align-items-center">
+          {{ form.hidden_tag() }}
+          <input type="hidden" name="user_id" value="{{ u.id }}">
+          {{ form.role(class_='form-select form-select-sm w-auto', value=u.role) }}
+          <div class="form-check ms-2">
+            <input class="form-check-input" type="checkbox" name="force_2fa" id="force2fa{{ u.id }}" {% if u.force_2fa %}checked{% endif %}>
+            <label class="form-check-label" for="force2fa{{ u.id }}">2FA</label>
+          </div>
+          {{ form.submit(class_='btn btn-sm btn-primary', value='Aplicar') }}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">Editar</a>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="text-center text-muted">Nenhum usuário.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
