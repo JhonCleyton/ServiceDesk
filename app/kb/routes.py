@@ -65,7 +65,9 @@ def edit(article_id):
 def view(article_id):
     art = KnowledgeBaseArticle.query.get_or_404(article_id)
     if current_user.role not in ('admin','supervisor','tech'):
-        if not (art.public and art.company_id == current_user.company_id and art.status == 'published'):
+        # Permite acesso a artigos públicos publicados ou artigos da própria empresa que estejam publicados
+        if not (art.status == 'published' and 
+               (art.public or art.company_id == current_user.company_id)):
             abort(403)
     return render_template('kb/view.html', article=art)
 
@@ -76,12 +78,26 @@ def search():
     q = (request.args.get('q') or '').strip().lower()
     if not q:
         return jsonify([])
-    query = KnowledgeBaseArticle.query
+    
+    query = KnowledgeBaseArticle.query.filter(
+        (KnowledgeBaseArticle.title.ilike(f"%{q}%")) | 
+        (KnowledgeBaseArticle.content.ilike(f"%{q}%"))
+    )
+    
     if current_user.role not in ('admin','supervisor','tech'):
-        query = query.filter_by(company_id=current_user.company_id, public=True, status='published')
-    results = query.filter(
-        (KnowledgeBaseArticle.title.ilike(f"%{q}%")) | (KnowledgeBaseArticle.content.ilike(f"%{q}%"))
-    ).order_by(KnowledgeBaseArticle.updated_at.desc()).limit(5).all()
+        # Para usuários comuns, mostrar artigos públicos publicados (independente da empresa)
+        # e também artigos da própria empresa que sejam públicos
+        query = query.filter(
+            db.or_(
+                KnowledgeBaseArticle.public == True,
+                db.and_(
+                    KnowledgeBaseArticle.company_id == current_user.company_id,
+                    KnowledgeBaseArticle.status == 'published'
+                )
+            )
+        )
+    
+    results = query.order_by(KnowledgeBaseArticle.updated_at.desc()).limit(5).all()
     return jsonify([
         {
             'id': a.id,
