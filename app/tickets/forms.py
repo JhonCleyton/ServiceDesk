@@ -54,6 +54,6 @@ class CloseForm(FlaskForm):
 
 
 class RatingForm(FlaskForm):
-    rating = SelectField('Avaliação', choices=[('1','1'),('2','2'),('3','3'),('4','4'),('5','5')], validators=[DataRequired()])
+    rating = StringField('Avaliação', validators=[DataRequired()])  # Campo oculto para a classificação
     comment = TextAreaField('Comentário (opcional)')
     submit = SubmitField('Enviar avaliação')

@@ -144,3 +144,50 @@ table.table tbody tr:hover{background:rgba(37,99,235,.04)}
 /* Previews for new uploads */
 .previews .preview-item{border:1px solid rgba(0,0,0,.08); border-radius:10px; background:#fff; box-shadow: 0 4px 10px rgba(0,0,0,.06)}
 .previews .preview-item .name{font-size:.85rem}
+
+/* Estrelas de classificação */
+.rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-bottom: 1rem;
+}
+
+.rating input {
+  display: none;
+}
+
+.rating label {
+  font-size: 2rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.rating label:before {
+  content: '★';
+}
+
+.rating input:checked ~ label,
+.rating input:checked ~ label ~ label,
+.rating:not(:checked) > label:hover,
+.rating:not(:checked) > label:hover ~ label {
+  color: #ffc107;
+}
+
+.rating input:checked + label,
+.rating input:checked + label ~ label {
+  color: #ffc107;
+}
+
+.rating-container {
+  margin-bottom: 1rem;
+}
+
+.rating-value {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #666;
+}

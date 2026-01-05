@@ -3,11 +3,28 @@
 {% block content %}
 <h2>Avaliar atendimento</h2>
 <p class="text-muted">Ticket {{ ticket.number }} • {{ ticket.title }}</p>
-<form method="post">
+<form method="post" id="ratingForm">
   {{ form.hidden_tag() }}
   <div class="mb-3">
-    {{ form.rating.label(class_='form-label') }}
-    {{ form.rating(class_='form-select w-auto') }}
+    <label class="form-label">Sua avaliação</label>
+    <div class="rating-container">
+      <div class="rating">
+        <input type="radio" id="star5" name="rating" value="5" {% if form.rating.data == '5' %}checked{% endif %} required>
+        <label for="star5" title="5 estrelas"></label>
+        <input type="radio" id="star4" name="rating" value="4" {% if form.rating.data == '4' %}checked{% endif %}>
+        <label for="star4" title="4 estrelas"></label>
+        <input type="radio" id="star3" name="rating" value="3" {% if form.rating.data == '3' %}checked{% endif %}>
+        <label for="star3" title="3 estrelas"></label>
+        <input type="radio" id="star2" name="rating" value="2" {% if form.rating.data == '2' %}checked{% endif %}>
+        <label for="star2" title="2 estrelas"></label>
+        <input type="radio" id="star1" name="rating" value="1" {% if form.rating.data == '1' %}checked{% endif %}>
+        <label for="star1" title="1 estrela"></label>
+      </div>
+      <div class="rating-value">
+        <span id="ratingText">Selecione uma classificação</span>
+      </div>
+      <input type="hidden" id="ratingInput" name="rating" value="{{ form.rating.data or '' }}" required>
+    </div>
   </div>
   <div class="mb-3">
     {{ form.comment.label(class_='form-label') }}
@@ -15,4 +32,42 @@
   </div>
   {{ form.submit(class_='btn btn-primary') }}
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const stars = document.querySelectorAll('.rating input');
+  const ratingText = document.getElementById('ratingText');
+  const ratingInput = document.getElementById('ratingInput');
+  const ratingLabels = {
+    '1': 'Ruim',
+    '2': 'Regular',
+    '3': 'Bom',
+    '4': 'Muito Bom',
+    '5': 'Excelente'
+  };
+
+  // Atualiza o texto da classificação quando uma estrela é clicada
+  stars.forEach(star => {
+    star.addEventListener('change', function() {
+      const value = this.value;
+      ratingText.textContent = ratingLabels[value] || 'Selecione uma classificação';
+      ratingInput.value = value;
+    });
+  });
+
+  // Inicializa o texto da classificação se já houver um valor selecionado
+  const selectedStar = document.querySelector('.rating input:checked');
+  if (selectedStar) {
+    ratingText.textContent = ratingLabels[selectedStar.value] || 'Selecione uma classificação';
+  }
+
+  // Validação do formulário
+  document.getElementById('ratingForm').addEventListener('submit', function(e) {
+    if (!ratingInput.value) {
+      e.preventDefault();
+      alert('Por favor, selecione uma classificação.');
+    }
+  });
+});
+</script>
 {% endblock %}
